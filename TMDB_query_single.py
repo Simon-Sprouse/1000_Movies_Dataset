@@ -28,14 +28,17 @@ def getID(title):
     parse = json.loads(response_text)
     results = parse['results'] ## parsed results return as Json/Dict
     
+    
     ## Select the movie that matches title the best
     if len(results) > 0: 
         best_match = results[0]
+        movie_id = best_match['id']
+        genre_ids = best_match['genre_ids']
+        
+        return (movie_id, genre_ids)
     
-    movie_id = best_match['id']
-    genre_ids = best_match['genre_ids']
-    
-    return (movie_id, genre_ids)
+    else: 
+        return (None, None)
 
 print(getID("The Lion King"))
 
