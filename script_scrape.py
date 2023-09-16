@@ -22,7 +22,7 @@ def jaccardIndex(real_title, comp_title):
     real_title_ls = [str.lower(word).strip(string.punctuation) for word in real_title.split(sep=" ")]
     comp_title_ls = [str.lower(word).strip(string.punctuation) for word in comp_title.split(sep=" ")]
     
-    ## create set of each word
+    ## create set containing each word
     set1 = set(real_title_ls)
     set2 = set(comp_title_ls)
 
@@ -73,40 +73,50 @@ def findUrl(title, date):
 
 
 def getScript(title, date):
+    ''' 
+    Generate the transcript of a movie given the url to the database
+    
+    '''
 
+    ## genrate the correct url
     q = findUrl(title, date)
-
     url = 'https://www.springfieldspringfield.co.uk/movie_script.php?movie={}'.format(q)
     response = requests.get(url)
-
     
+    ## target the transcript element
     soup = BeautifulSoup(response.text, 'html.parser')
     container = soup.findAll('div', class_='scrolling-script-container')
     
-
+    ## return the script if it exists
     for div in container:
         return div.text
-
+    
     return ""
 
 def countSwear(title, date):
+    ''' 
+    Count the number of swears given the transcript of a movie
     
+    '''
+    
+    ## generate movie script, return with error otherwise
     script = getScript(title, date)
+    if len(script) == 0:
+        return -1
     
+    ## open file where I list all possible swears
     file = open("swear.txt")
-        
     swears = [line.rstrip('\n') for line in file.readlines()]
-
     count = 0
 
+    ## O(n^2) string comparison
     for word in script.split(sep=' '):
-        # print(str.lower(word).rstrip(string.punctuation))
         if str.lower(word).rstrip(string.punctuation) in swears:
             count += 1
 
-    print(count)
+    return count
         
         
-countSwear("The Dark Knight", "2008")
-countSwear("The Wolf of Wallstreet", "2013")
+print(countSwear("The Dark Knight", "2008"))
+print(countSwear("The Wolf of Wallstreet", "2013"))
 
