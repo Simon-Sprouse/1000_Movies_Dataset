@@ -8,56 +8,63 @@ Created on Fri Sep 15 19:24:17 2023
 
 import requests
 from bs4 import BeautifulSoup
-from difflib import SequenceMatcher
 import string
 import re
 
-def compTitles(title1, title2):
-    return SequenceMatcher(None, title1, title2).ratio()
 
 def jaccardIndex(real_title, comp_title):
+    '''
+    Computes the similarity between two strings
     
+    '''
+    
+    ## prepare strings to be compared
     real_title_ls = [str.lower(word).strip(string.punctuation) for word in real_title.split(sep=" ")]
     comp_title_ls = [str.lower(word).strip(string.punctuation) for word in comp_title.split(sep=" ")]
     
+    ## create set of each word
     set1 = set(real_title_ls)
     set2 = set(comp_title_ls)
 
+    ## compute intersection / union
     j_index = len(set1.intersection(set2)) / len(set1.union(set2))
     
     return j_index
 
 def findUrl(title, date):
-
-    # search = "The Wolf of Wallstreet"
-    # date = "2013"
+    '''
+    Takes a movie title and returns the url for the best match
+    
+    '''
+    
+    ## Generate possible titles using request to database
     search = title.replace(" ", "+")
     search += "+%28{}%29".format(date)
-    
-    
     url = "https://www.springfieldspringfield.co.uk/movie_scripts.php?search=" + search
-    
     response = requests.get(url)
-    
-    
     soup = BeautifulSoup(response.text, 'html.parser')
     
-    
+    ## will track the most similar entry
     best = (0, "None (0000)")
+    
+    ## target query results
     tags = soup.findAll('a', class_="btn btn-dark btn-sm")
     for tag in tags:
-        tag_date = tag.text[len(tag.text) - 5:len(tag.text) - 1]
+        
+        ## remove date from query result and find j-index
         tag_no_date = tag.text[:len(tag.text) - 7]
-
         similarity = jaccardIndex(title, tag_no_date)
+        
+        ## add +1 to all movies released in the correct year
+        tag_date = tag.text[len(tag.text) - 5:len(tag.text) - 1]
         if tag_date == date:
             similarity += 1
-        print(similarity)
+        
+        ## update best
         if similarity > best[0]:
             best = (similarity, tag.text)
             
-    print(best)
-    
+    ## format the best result
     title = best[1]
     query = str.lower(title.replace(" ", '-'))[:len(title) - 7]
     query = re.sub(r'[^a-zA-Z0-9\s-]', "", query)
