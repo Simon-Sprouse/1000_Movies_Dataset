@@ -26,10 +26,8 @@ def getScript(title):
     
 
     for div in container:
-        ## print(div.text)
         return div.text
 
-        
     return ""
         
         
